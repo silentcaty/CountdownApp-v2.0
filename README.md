@@ -6,6 +6,10 @@ CountdownApp 是一个基于 Python 的倒计时应用程序，提供定时提�
 
 注意： 提示音“叮” 需要 python环境的playsound包，没有不会发出声音，但会出现全屏倒计时。
 
+### 使用windows封装应用程序
+
+下载并解压CountdownApp-v1.0.rar，运行countdown_app.exe文件即可
+
 ### 使用 Python 脚本（所有PC通用）
 前提条件
 
