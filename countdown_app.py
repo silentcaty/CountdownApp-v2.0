@@ -110,8 +110,8 @@ class CountdownApp:
 
         while self.is_counting and elapsed_time < self.focus_duration:
             if not self.is_paused:
-                # Random interval between 3 to 5 minutes (180 to 300 seconds)
-                interval = random.randint(180, 300)
+                # 修改随机间隔为 6 到 8 分钟 (360 到 480 秒)
+                interval = random.randint(360, 480)
                 # Sleep for the interval, checking periodically to allow interruption
                 interval_start = time.time()
                 while elapsed_time < self.focus_duration and time.time() - interval_start < interval and self.is_counting and not self.is_paused:
