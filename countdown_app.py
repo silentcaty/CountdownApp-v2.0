@@ -177,7 +177,7 @@ class CountdownApp:
         self.countdown_thread = threading.Thread(target=self.countdown_loop, daemon=True)
         self.countdown_thread.start()
 
-        self.update_90min_countdown(self.total_time_sec)
+        self.set_countdown_label(self.total_time_sec)
 
     def stop_countdowns(self):
         # Stop countdowns and return to initial frame
@@ -235,14 +235,10 @@ class CountdownApp:
         # Terminate the application
         self.root.quit()
 
-    def update_90min_countdown(self, remaining):
-        if self.is_counting and remaining >= 0:
-            if not self.is_paused:
-                minutes = remaining // 60
-                seconds = remaining % 60
-                self.countdown_label.config(text=f"{minutes:02d}:{seconds:02d}")
-                remaining -= 1
-            self.root.after(1000, self.update_90min_countdown, remaining)
+    def set_countdown_label(self, remaining):
+        minutes = int(remaining) // 60
+        seconds = int(remaining) % 60
+        self.countdown_label.config(text=f"{minutes:02d}:{seconds:02d}")
 
 
     def countdown_loop(self):
@@ -260,7 +256,10 @@ class CountdownApp:
 
             remaining_total = self.total_time_sec - (time.time() - start_time - elapsed_pause_time)
             if remaining_total <= 0:
+                self.root.after(0, self.set_countdown_label, 0)
                 break
+
+            self.root.after(0, self.set_countdown_label, remaining_total)
 
             next_break_in -= 1
             if next_break_in <= 0:
