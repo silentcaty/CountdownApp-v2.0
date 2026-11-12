@@ -177,7 +177,7 @@ class CountdownApp:
         self.countdown_thread = threading.Thread(target=self.countdown_loop, daemon=True)
         self.countdown_thread.start()
 
-        self.update_90min_countdown(self.total_time_sec)
+        self.set_countdown_label(self.total_time_sec)
 
     def stop_countdowns(self):
         # Stop countdowns and return to initial frame
@@ -235,34 +235,40 @@ class CountdownApp:
         # Terminate the application
         self.root.quit()
 
-    def update_90min_countdown(self, remaining):
-        if self.is_counting and remaining >= 0:
-            if not self.is_paused:
-                minutes = remaining // 60
-                seconds = remaining % 60
-                self.countdown_label.config(text=f"{minutes:02d}:{seconds:02d}")
-                remaining -= 1
-            self.root.after(1000, self.update_90min_countdown, remaining)
+    def set_countdown_label(self, remaining):
+        minutes = int(remaining) // 60
+        seconds = int(remaining) % 60
+        self.countdown_label.config(text=f"{minutes:02d}:{seconds:02d}")
 
 
     def countdown_loop(self):
         start_time = time.time()
         elapsed_pause_time = 0
+        next_break_in = random.randint(self.random_min_sec, self.random_max_sec)
 
-        while self.is_counting and (time.time() - start_time - elapsed_pause_time < self.total_time_sec):
-            interval = random.randint(self.random_min_sec, self.random_max_sec)
-            elapsed = 0
-            while elapsed < interval and self.is_counting:
-                time.sleep(1)
-                if not self.is_paused:
-                    elapsed += 1
-                else:
-                    elapsed_pause_time += 1
-            if self.is_counting and not self.is_paused:
+        while self.is_counting:
+            time.sleep(1)
+
+            # 暂停期间既不算专注时长，也不推进下一次随机提醒
+            if self.is_paused:
+                elapsed_pause_time += 1
+                continue
+
+            remaining_total = self.total_time_sec - (time.time() - start_time - elapsed_pause_time)
+            if remaining_total <= 0:
+                self.root.after(0, self.set_countdown_label, 0)
+                break
+
+            self.root.after(0, self.set_countdown_label, remaining_total)
+
+            next_break_in -= 1
+            if next_break_in <= 0:
                 self.root.after(0, self.show_countdown, self.break_duration_sec)
+                next_break_in = random.randint(self.random_min_sec, self.random_max_sec)
 
+        # 专注时间一到立刻进入 20 分钟休息，不再等当前这一轮随机间隔走完
         if self.is_counting:
-            self.root.after(0, self.show_countdown, 20 * 60)  # 最后20分钟保持原有逻辑
+            self.root.after(0, self.show_countdown, 20 * 60)
 
     # 黑屏倒计时
     def show_countdown(self, seconds):
